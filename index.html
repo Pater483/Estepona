@@ -39,6 +39,12 @@
   .booking .guest { font-size: 16px; line-height: 1.4; }
   .booking.now .guest::after { content: "pågår"; margin-left: 10px; font-size: 11px; color: var(--paper); background: var(--brass); padding: 2px 7px; border-radius: 2px; vertical-align: 2px; }
 
+  .booking .main { font-weight: 700; }
+  .booking .others { font-style: italic; color: var(--green); }
+  .booking .others::before { content: " · "; font-style: normal; color: var(--muted); }
+  .hero .others { font-style: italic; font-size: 16px; color: rgba(243,242,238,0.8); margin-top: 4px; }
+  .hero .others::before { content: "med "; font-style: normal; }
+
   .none { font-style: italic; color: var(--muted); }
 
   .footer { margin-top: 48px; padding-top: 16px; border-top: 1px solid var(--rule); font-size: 12px; color: var(--muted); }
@@ -57,7 +63,7 @@
   <div class="header">
     <div>
       <h1>Estepona</h1>
-      <div class="desc">Bokningar de kommande 12 månaderna.<br>Datum som inte syns här är lediga.</div>
+      <div class="desc">Bokningar de kommande 12 månaderna.<br>Datum som inte syns här är lediga.<br><b>Fet</b> = huvudbokare, <i>kursiv</i> = övriga.</div>
     </div>
     <div class="updated">Uppdaterat<br>6 okt 2026</div>
   </div>
@@ -70,9 +76,10 @@
 </div>
 <script>
 // Lägg till bokningar här: start, slut (samma datum om en dag), gäst
+// Valfritt: prio (lägre vinner) om två anländer samma dag och ingen är Bettan
 const BOOKINGS = [
   { start: "2026-10-31", end: "2026-11-07", guest: "Tuta" },
-  { start: "2026-11-05", end: "2026-11-12", guest: "Mamma" },
+  { start: "2026-11-05", end: "2026-11-12", guest: "Bettan" },
   { start: "2026-11-05", end: "2026-11-29", guest: "Patrik" },
 ];
 
@@ -93,18 +100,45 @@ const HORIZON = new Date(TODAY); HORIZON.setFullYear(HORIZON.getFullYear() + 1);
 const items = BOOKINGS
   .map(b => ({ ...b, s: toDate(b.start), e: toDate(b.end) }))
   .filter(b => b.e >= TODAY && b.s <= HORIZON)
-  .sort((a, b) => a.s - b.s);
+  .sort((a, b) => a.s - b.s || (a.prio ?? 9) - (b.prio ?? 9));
 
-// Hero: pågående eller nästa bokning
+// Huvudbokare: Bettan (Mamma) om hon är där, annars den som anlände först
+const HOST = ["Bettan", "Mamma"];
+function mainOf(present) {
+  return present.find(b => HOST.includes(b.guest)) || present[0];
+}
+
+// Dela upp tiden i perioder med samma sällskap
+const periods = [];
+if (items.length) {
+  const last = new Date(Math.min(+HORIZON, Math.max(...items.map(b => +b.e))));
+  let prev = null;
+  for (let d = new Date(TODAY); d <= last; d.setDate(d.getDate() + 1)) {
+    const present = items.filter(b => b.s <= d && b.e >= d);
+    const sig = present.map(b => b.guest).join("|");
+    if (!present.length) { prev = null; continue; }
+    if (sig === prev) periods[periods.length - 1].e = new Date(d);
+    else {
+      const main = mainOf(present);
+      periods.push({ s: new Date(d), e: new Date(d), main: main.guest, others: present.filter(b => b !== main).map(b => b.guest) });
+    }
+    prev = sig;
+  }
+}
+
+const othersHtml = (p, cls) => p.others.length ? `<span class="others">${p.others.join(", ")}</span>` : "";
+
+// Hero: pågående eller nästa period
 const hero = document.getElementById("hero");
-const current = items.find(b => b.s <= TODAY && b.e >= TODAY);
-const next = items.find(b => b.s > TODAY);
+const current = periods.find(p => p.s <= TODAY && p.e >= TODAY);
+const next = periods.find(p => p.s > TODAY);
+const heroOthers = p => p.others.length ? `<div class="others">${p.others.join(", ")}</div>` : "";
 if (current) {
   hero.className = "hero";
-  hero.innerHTML = `<div class="label">Upptagen just nu</div><div class="who">${current.guest}</div><div class="when">Till och med ${fmtLong(current.e)}</div>`;
+  hero.innerHTML = `<div class="label">Upptagen just nu</div><div class="who">${current.main}</div>${heroOthers(current)}<div class="when">Till och med ${fmtLong(current.e)}</div>`;
 } else if (next) {
   hero.className = "hero";
-  hero.innerHTML = `<div class="label">Nästa bokning</div><div class="who">${next.guest}</div><div class="when">${range(next.s, next.e)} · om ${Math.round((next.s - TODAY) / DAY)} dagar</div>`;
+  hero.innerHTML = `<div class="label">Nästa bokning</div><div class="who">${next.main}</div>${heroOthers(next)}<div class="when">${range(next.s, next.e)} · om ${Math.round((next.s - TODAY) / DAY)} dagar</div>`;
 } else {
   hero.className = "hero empty";
   hero.innerHTML = `<div class="who">Inga bokningar de kommande 12 månaderna</div>`;
@@ -113,9 +147,9 @@ if (current) {
 // Lista grupperad per månad
 const list = document.getElementById("list");
 const months = {};
-items.forEach(b => {
-  const key = `${b.s.getFullYear()}-${String(b.s.getMonth()+1).padStart(2,"0")}`;
-  (months[key] ||= []).push(b);
+periods.forEach(p => {
+  const key = `${p.s.getFullYear()}-${String(p.s.getMonth()+1).padStart(2,"0")}`;
+  (months[key] ||= []).push(p);
 });
 
 Object.keys(months).sort().forEach(key => {
@@ -123,12 +157,12 @@ Object.keys(months).sort().forEach(key => {
   const sec = document.createElement("div");
   sec.className = "month";
   sec.innerHTML = `<h2>${new Date(y, m-1, 1).toLocaleDateString("sv-SE", { month: "long", year: "numeric" })}</h2>`;
-  months[key].forEach(b => {
-    const n = Math.round((b.e - b.s) / DAY) + 1;
-    const now = b.s <= TODAY && b.e >= TODAY;
+  months[key].forEach(p => {
+    const n = Math.round((p.e - p.s) / DAY) + 1;
+    const now = p.s <= TODAY && p.e >= TODAY;
     const row = document.createElement("div");
     row.className = "booking" + (now ? " now" : "");
-    row.innerHTML = `<div><div class="dates">${range(b.s, b.e)}</div><div class="days">${n} dag${n !== 1 ? "ar" : ""}</div></div><div class="guest">${b.guest}</div>`;
+    row.innerHTML = `<div><div class="dates">${range(p.s, p.e)}</div><div class="days">${n} dag${n !== 1 ? "ar" : ""}</div></div><div class="guest"><span class="main">${p.main}</span>${othersHtml(p)}</div>`;
     sec.appendChild(row);
   });
   list.appendChild(sec);
