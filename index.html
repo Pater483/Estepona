@@ -7,12 +7,13 @@
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
-    --paper: #F3F2EE;
-    --ink: #1F2A26;
-    --green: #2F4A3F;
-    --brass: #B08D57;
-    --muted: #8A8F88;
-    --rule: #DCDAD2;
+    --paper: #FBF4DF;
+    --ink: #3B2A1C;
+    --green: #2C7DA0;
+    --brass: #2C7DA0;
+    --sun: #EDB93F;
+    --muted: #9C8A74;
+    --rule: #EADFC2;
   }
   html, body { background: var(--paper); color: var(--ink); font-family: Georgia, 'Times New Roman', serif; min-height: 100vh; }
   .page { max-width: 560px; margin: 0 auto; padding: 44px 24px 80px; }
@@ -22,11 +23,11 @@
   .header .desc { font-size: 13px; color: var(--muted); margin-top: 8px; font-style: italic; line-height: 1.5; }
   .header .updated { font-size: 12px; color: var(--muted); text-align: right; line-height: 1.4; white-space: nowrap; }
 
-  .hero { background: var(--green); color: var(--paper); border-radius: 6px; padding: 24px 26px; margin-bottom: 40px; border-left: 4px solid var(--brass); }
-  .hero .label { font-size: 13px; color: rgba(243,242,238,0.65); margin-bottom: 6px; }
+  .hero { background: var(--sun); color: var(--ink); border-radius: 6px; padding: 24px 26px; margin-bottom: 40px; border-left: 4px solid var(--brass); }
+  .hero .label { font-size: 13px; color: rgba(59,42,28,0.65); margin-bottom: 6px; }
   .hero .who { font-size: 26px; letter-spacing: -0.01em; line-height: 1.2; }
-  .hero .when { font-size: 14px; color: rgba(243,242,238,0.75); margin-top: 6px; }
-  .hero.empty .who { font-style: italic; color: rgba(243,242,238,0.7); font-size: 20px; }
+  .hero .when { font-size: 14px; color: rgba(59,42,28,0.75); margin-top: 6px; }
+  .hero.empty .who { font-style: italic; color: rgba(59,42,28,0.7); font-size: 20px; }
 
   .month { margin-bottom: 28px; }
   .month h2 { font-size: 13px; font-weight: 400; color: var(--muted); border-bottom: 1px solid var(--rule); padding-bottom: 6px; margin-bottom: 4px; }
@@ -37,12 +38,12 @@
   .booking .dates { font-size: 14px; color: var(--green); font-variant-numeric: tabular-nums; }
   .booking .days { font-size: 12px; color: var(--muted); margin-top: 2px; }
   .booking .guest { font-size: 16px; line-height: 1.4; }
-  .booking.now .guest::after { content: "pågår"; margin-left: 10px; font-size: 11px; color: var(--paper); background: var(--brass); padding: 2px 7px; border-radius: 2px; vertical-align: 2px; }
+  .booking.now .guest::after { content: "pågår"; margin-left: 10px; font-size: 11px; color: var(--ink); background: var(--sun); padding: 2px 7px; border-radius: 2px; vertical-align: 2px; }
 
   .booking .main { font-weight: 700; }
   .booking .others { font-style: italic; color: var(--green); }
   .booking .others::before { content: " · "; font-style: normal; color: var(--muted); }
-  .hero .others { font-style: italic; font-size: 16px; color: rgba(243,242,238,0.8); margin-top: 4px; }
+  .hero .others { font-style: italic; font-size: 16px; color: rgba(59,42,28,0.8); margin-top: 4px; }
   .hero .others::before { content: "med "; font-style: normal; }
 
   .none { font-style: italic; color: var(--muted); }
@@ -63,9 +64,9 @@
   <div class="header">
     <div>
       <h1>Estepona</h1>
-      <div class="desc">Bokningar de kommande 12 månaderna.<br>Datum som inte syns här är lediga.<br><b>Fet</b> = huvudbokare, <i>kursiv</i> = övriga.</div>
+      <div class="desc">Bokningar de kommande 12 månaderna.<br>Datum som inte syns här är lediga.<br>Datum nedan avser kvällen då bokaren lägger huvudet på kudden.<br><b>Fet</b> = huvudbokare, <i>kursiv</i> = övriga.</div>
     </div>
-    <div class="updated">Uppdaterat<br>28 okt 2026</div>
+    <div class="updated">Uppdaterat<br>18 nov 2026</div>
   </div>
 
   <div id="hero"></div>
@@ -75,14 +76,14 @@
 
 </div>
 <script>
-// Lägg till bokningar här: start, slut (samma datum om en dag), gäst
+// Lägg till bokningar här: start = första natten, end = sista natten
 // Valfritt: prio (lägre vinner) om två anländer samma dag och ingen är Bettan
 const BOOKINGS = [
-  { start: "2026-10-31", end: "2026-11-07", guest: "Tuta" },
-  { start: "2026-11-05", end: "2026-11-12", guest: "Bettan" },
-  { start: "2026-11-05", end: "2026-11-29", guest: "Patrik" },
-  { start: "2027-01-23", end: "2027-01-31", guest: "Patrik" },
-  { start: "2027-01-25", end: "2027-01-31", guest: "Wemans" },
+  { start: "2026-10-31", end: "2026-11-06", guest: "Tuta" },
+  { start: "2026-11-05", end: "2026-11-11", guest: "Bettan" },
+  { start: "2026-11-05", end: "2026-11-28", guest: "Patrik" },
+  { start: "2027-01-23", end: "2027-01-30", guest: "Patrik" },
+  { start: "2027-01-25", end: "2027-01-30", guest: "Wemans" },
 ];
 
 const DAY = 86400000;
@@ -134,13 +135,14 @@ const othersHtml = (p, cls) => p.others.length ? `<span class="others">${p.other
 const hero = document.getElementById("hero");
 const current = periods.find(p => p.s <= TODAY && p.e >= TODAY);
 const next = periods.find(p => p.s > TODAY);
+const nightsOf = p => Math.round((p.e - p.s) / DAY) + 1;
 const heroOthers = p => p.others.length ? `<div class="others">${p.others.join(", ")}</div>` : "";
 if (current) {
   hero.className = "hero";
-  hero.innerHTML = `<div class="label">Upptagen just nu</div><div class="who">${current.main}</div>${heroOthers(current)}<div class="when">Till och med ${fmtLong(current.e)}</div>`;
+  hero.innerHTML = `<div class="label">Upptagen just nu</div><div class="who">${current.main}</div>${heroOthers(current)}<div class="when">Sista natt ${fmtLong(current.e)}</div>`;
 } else if (next) {
   hero.className = "hero";
-  hero.innerHTML = `<div class="label">Nästa bokning</div><div class="who">${next.main}</div>${heroOthers(next)}<div class="when">${range(next.s, next.e)} · om ${Math.round((next.s - TODAY) / DAY)} dagar</div>`;
+  hero.innerHTML = `<div class="label">Nästa bokning</div><div class="who">${next.main}</div>${heroOthers(next)}<div class="when">${range(next.s, next.e)} · ${nightsOf(next)} nätter · om ${Math.round((next.s - TODAY) / DAY)} dagar</div>`;
 } else {
   hero.className = "hero empty";
   hero.innerHTML = `<div class="who">Inga bokningar de kommande 12 månaderna</div>`;
@@ -164,7 +166,7 @@ Object.keys(months).sort().forEach(key => {
     const now = p.s <= TODAY && p.e >= TODAY;
     const row = document.createElement("div");
     row.className = "booking" + (now ? " now" : "");
-    row.innerHTML = `<div><div class="dates">${range(p.s, p.e)}</div><div class="days">${n} dag${n !== 1 ? "ar" : ""}</div></div><div class="guest"><span class="main">${p.main}</span>${othersHtml(p)}</div>`;
+    row.innerHTML = `<div><div class="dates">${range(p.s, p.e)}</div><div class="days">${n} ${n !== 1 ? "nätter" : "natt"}</div></div><div class="guest"><span class="main">${p.main}</span>${othersHtml(p)}</div>`;
     sec.appendChild(row);
   });
   list.appendChild(sec);
